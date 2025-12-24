@@ -22,15 +22,22 @@ G = [
 % -----------------------------
 % Hiperparámetros
 % -----------------------------
-lr_pos   = 0.2;   % x,y,z
-lr_scale = 0.02;  % scale (MUCHO más pequeño)
-eps = 1e-3;     % paso para diferencias finitas
+lr_pos_init   = 0.2;     % learning rate inicial para x,y,z
+lr_scale_init = 0.02;    % learning rate inicial para scale
+lr_decay      = 0.999;   % decay MUY suave (0.995 era demasiado agresivo)
+eps = 1e-3;              % paso para diferencias finitas
 num_iters = 1000;
 
+% Early stopping
+patience = 30;           % iteraciones sin mejora antes de parar (reducido)
+min_improvement = 1e-5;  % mejora mínima (menos estricto para parar antes)
+
 loss_history = zeros(num_iters,1);
+best_loss = inf;
+no_improve_count = 0;
 
 % -----------------------------
-% Optimización
+% Optimización con LR decay y early stopping
 % -----------------------------
 for it = 1:num_iters
 
@@ -38,8 +45,26 @@ for it = 1:num_iters
     loss = compute_loss(img, target);
     loss_history(it) = loss;
 
-    fprintf('Iter %03d | loss = %.6f | pos = [%.3f %.3f %.3f] | scale = %.4f\n', ...
-            it, loss, G(1), G(2), G(3), G(4));
+    % Learning rate con decay exponencial
+    lr_pos = lr_pos_init * (lr_decay ^ it);
+    lr_scale = lr_scale_init * (lr_decay ^ it);
+
+    fprintf('Iter %03d | loss = %.6f | pos = [%.3f %.3f %.3f] | scale = %.4f | lr_pos = %.5f\n', ...
+            it, loss, G(1), G(2), G(3), G(4), lr_pos);
+
+    % Early stopping: verificar mejora
+    if loss < best_loss - min_improvement
+        best_loss = loss;
+        no_improve_count = 0;
+    else
+        no_improve_count = no_improve_count + 1;
+    end
+    
+    if no_improve_count >= patience
+        fprintf('Early stopping en iteración %d (sin mejora en %d iters)\n', it, patience);
+        loss_history = loss_history(1:it);
+        break;
+    end
 
     % Gradiente por diferencias finitas
     for d = 1:4  % x, y, z, scale
