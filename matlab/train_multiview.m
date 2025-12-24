@@ -1,4 +1,4 @@
-%% OPTIMIZACIÓN MULTIVISTA 3DGS (VERSIÓN FINAL REFINADA)
+%% OPTIMIZACIÓN MULTIVISTA 3DGS CON TRAYECTORIA 3D
 clear; clc; close all;
 setup_paths;
 
@@ -15,7 +15,10 @@ end
 % Posición x,y,z | Escala | R,G,B | Opacidad
 G = [0.1, 0.1, 1.1,  0.1,  1, 0, 0,  1.0]; 
 
-% 3. Hiperparámetros base (Valores iniciales)
+% --- NUEVO: Historial para trayectoria ---
+trajectory = zeros(1000, 3); 
+
+% 3. Hiperparámetros base
 iterations = 1000;
 lr_pos_init = 0.05;      
 lr_scale_init = 0.005;   
@@ -28,11 +31,13 @@ hFig = figure('Color', 'w', 'Name', '3DGS: Render vs Ground Truth', 'Position', 
 loss_history = zeros(iterations, 1);
 cam_stack = [];
 
-fprintf('Iniciando optimización refinada con LR Decay...\n');
+fprintf('Iniciando optimización refinada con registro de trayectoria...\n');
 
 for it = 1:iterations
-    % --- A. LEARNING RATE DECAY (Simulando update_learning_rate de 3DGS) ---
-    % Reduce el LR gradualmente para evitar oscilaciones al final
+    % Guardar posición actual en el historial
+    trajectory(it, :) = G(1:3);
+
+    % --- A. LEARNING RATE DECAY ---
     decay = 0.1^(1/iterations);
     lr_pos = lr_pos_init * (decay ^ it);
     lr_scale = lr_scale_init * (decay ^ it);
@@ -62,35 +67,62 @@ for it = 1:iterations
         grad(d) = (loss_p - loss) / eps;
     end
 
-    % --- E. Actualización con Momentum y LR actual ---
+    % --- E. Actualización con Momentum ---
     lrs = [lr_pos, lr_pos, lr_pos, lr_scale];
     v_G(1:4) = momentum * v_G(1:4) - lrs .* grad;
     G(1:4) = G(1:4) + v_G(1:4);
 
-    % --- F. Restricciones de seguridad ---
+    % --- F. Restricciones ---
     G(4) = max(G(4), 0.01); 
     G(3) = max(G(3), 0.1);  
 
-    % --- G. Visualización Comparativa (Side-by-Side) ---
+    % --- G. Visualización 2D en tiempo real ---
     if mod(it, 10) == 0
-        % Render Actual
         subplot(1,3,1);
         imshow(img); 
         title(['Render Actual (Cam ', num2str(idx), ')']);
         
-        % Ground Truth original
         subplot(1,3,2);
         imshow(target_img); 
         title('Ground Truth (Objetivo)');
         
-        % Gráfica de convergencia
         subplot(1,3,3);
         plot(loss_history(1:it), 'Color', [0.8 0 0], 'LineWidth', 1.2);
-        title(sprintf('Loss: %.6f | LR: %.4f', loss, lr_pos));
+        title(sprintf('Iter %d | Loss: %.6f', it, loss));
         xlabel('Iteración'); grid on;
         
         drawnow limitrate;
     end
 end
 
-fprintf('✓ Optimización finalizada. XYZ final: [%.3f %.3f %.3f]\n', G(1), G(2), G(3));
+fprintf('✓ Optimización finalizada. Generando visualización 3D...\n');
+
+% --- H. PLOT 3D DE TRAYECTORIA ---
+figure('Color', 'w', 'Name', 'Trayectoria de la Gaussiana en el Espacio');
+hold on; grid on; axis equal;
+
+% 1. Dibujar las cámaras para referencia
+for i = 1:num_cams
+    % La posición de la cámara en el mundo es C = -R' * t
+    C = -cams(i).R' * cams(i).t;
+    plot3(C(1), C(2), C(3), 'k^', 'MarkerSize', 8, 'LineWidth', 1.5);
+    text(C(1), C(2), C(3), [' Cam', num2str(i)], 'FontSize', 8);
+end
+
+% 2. Dibujar la línea de trayectoria
+plot3(trajectory(:,1), trajectory(:,2), trajectory(:,3), 'b-', 'LineWidth', 2);
+
+% 3. Resaltar Inicio y Fin
+plot3(trajectory(1,1), trajectory(1,2), trajectory(1,3), 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
+text(trajectory(1,1), trajectory(1,2), trajectory(1,3), ' INICIO', 'Color', 'g', 'FontWeight', 'bold');
+
+plot3(trajectory(end,1), trajectory(end,2), trajectory(end,3), 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
+text(trajectory(end,1), trajectory(end,2), trajectory(end,3), ' FINAL', 'Color', 'r', 'FontWeight', 'bold');
+
+% 4. Configuración de vista
+view(3);
+xlabel('X Mundo'); ylabel('Y Mundo'); zlabel('Z Mundo');
+title('Movimiento de la Gaussiana durante la Optimización');
+legend('Cámaras', 'Recorrido', 'Punto Inicial', 'Punto Final', 'Location', 'northeastoutside');
+
+rotate3d on;
