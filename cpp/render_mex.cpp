@@ -127,6 +127,12 @@ void mexFunction(int nlhs, mxArray* plhs[],
     // -------------------------
     // Rasterización
     // -------------------------
+
+    std::sort(G.begin(), G.end(),
+          [](const Gaussian& a, const Gaussian& b) {
+              return a.z > b.z; // back-to-front
+          });
+          
     for (const auto& g : G)
     {
         float u, v, Zc;
