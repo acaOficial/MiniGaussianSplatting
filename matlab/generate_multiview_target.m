@@ -4,11 +4,12 @@ setup_paths;
 W = 640; H = 480;
 num_cams = 5;
 
-cams = create_camera_ring(num_cams, 1.0, W, H);
-
 G_gt = [
     0.0  0.0  1.0   0.08   1 0 0   1.0
 ];
+
+target_pos = G_gt(1:3)';
+cams = create_camera_ring(num_cams, 1.0, W, H, target_pos);
 
 if ~exist('../data/targets', 'dir')
     mkdir('../data/targets');
