@@ -1,4 +1,4 @@
-%% OPTIMIZACIÓN MULTIVISTA 3DGS CON TRAYECTORIA 3D
+%% OPTIMIZACIÓN MULTIVISTA: 2 GAUSSIANAS
 clear; clc; close all;
 setup_paths;
 
@@ -11,118 +11,87 @@ for i = 1:num_cams
     targets{i} = im2double(imread(sprintf('../data/targets/cam%02d.png', i)));
 end
 
-% 2. Inicialización de la Gaussiana
-% Posición x,y,z | Escala | R,G,B | Opacidad
-G = [0.1, 0.1, 1.1,  0.1,  1, 0, 0,  1.0]; 
+% 2. Inicialización de 2 Gaussianas (Filas independientes)
+% G = [x, y, z,  scale,  r, g, b,  opacity]
+G = [ 0.2,  0.1, 1.1,  0.1,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
+     -0.2, -0.1, 1.1,  0.1,  0, 0, 1,  1.0];  % Gaussiana 2 (Azul)
 
-% --- NUEVO: Historial para trayectoria ---
-trajectory = zeros(1000, 3); 
-
-% 3. Hiperparámetros base
+num_g = size(G, 1); % Cantidad de gaussianas (2)
 iterations = 1000;
+
+% --- NUEVO: Historial para 2 trayectorias ---
+traj1 = zeros(iterations, 3);
+traj2 = zeros(iterations, 3);
+
+% 3. Hiperparámetros
 lr_pos_init = 0.05;      
 lr_scale_init = 0.005;   
 momentum = 0.9;
-v_G = zeros(size(G));
+v_G = zeros(size(G)); % Velocidad ahora es 2x8
 eps = 1e-3;             
 
-% 4. Preparación de Visualización Comparativa
-hFig = figure('Color', 'w', 'Name', '3DGS: Render vs Ground Truth', 'Position', [100, 100, 1200, 400]);
+hFig = figure('Color', 'w', 'Name', '3DGS: 2 Gaussianas', 'Position', [100, 100, 1200, 400]);
 loss_history = zeros(iterations, 1);
 cam_stack = [];
 
-fprintf('Iniciando optimización refinada con registro de trayectoria...\n');
-
 for it = 1:iterations
-    % Guardar posición actual en el historial
-    trajectory(it, :) = G(1:3);
+    % Guardar trayectorias
+    traj1(it, :) = G(1, 1:3);
+    traj2(it, :) = G(2, 1:3);
 
-    % --- A. LEARNING RATE DECAY ---
+    % LR Decay
     decay = 0.1^(1/iterations);
     lr_pos = lr_pos_init * (decay ^ it);
     lr_scale = lr_scale_init * (decay ^ it);
 
-    % --- B. Selección de Cámara (Estocástico) ---
+    % Selección de Cámara
     if isempty(cam_stack)
         cam_stack = randperm(num_cams);
     end
     idx = cam_stack(1);
     cam_stack = cam_stack(2:end);
-    
-    current_cam = cams(idx);
     target_img = targets{idx};
 
-    % --- C. Render y Loss ---
-    img = render_mex(G, current_cam.K, current_cam.R, current_cam.t, W, H);
+    % --- C. Render y Loss (El renderizador debe recibir la matriz G completa) ---
+    img = render_mex(G, cams(idx).K, cams(idx).R, cams(idx).t, W, H);
     loss = compute_loss(img, target_img);
     loss_history(it) = loss;
 
-    % --- D. Gradiente por Diferencias Finitas ---
-    grad = zeros(1, 4);
-    for d = 1:4
-        Gp = G;
-        Gp(d) = Gp(d) + eps;
-        img_p = render_mex(Gp, current_cam.K, current_cam.R, current_cam.t, W, H);
-        loss_p = compute_loss(img_p, target_img);
-        grad(d) = (loss_p - loss) / eps;
+    % --- D. Gradientes para AMBAS Gaussianas ---
+    grad_G = zeros(size(G)); 
+    % Solo optimizamos los primeros 4 parámetros (XYZ y Scale) de cada una
+    for g_idx = 1:num_g
+        for p_idx = 1:4
+            Gp = G;
+            Gp(g_idx, p_idx) = Gp(g_idx, p_idx) + eps;
+            img_p = render_mex(Gp, cams(idx).K, cams(idx).R, cams(idx).t, W, H);
+            loss_p = compute_loss(img_p, target_img);
+            grad_G(g_idx, p_idx) = (loss_p - loss) / eps;
+        end
     end
 
     % --- E. Actualización con Momentum ---
-    lrs = [lr_pos, lr_pos, lr_pos, lr_scale];
-    v_G(1:4) = momentum * v_G(1:4) - lrs .* grad;
-    G(1:4) = G(1:4) + v_G(1:4);
+    lrs = [lr_pos, lr_pos, lr_pos, lr_scale, 0, 0, 0, 0]; % No tocamos RGB ni Alpha
+    v_G = momentum * v_G - lrs .* grad_G;
+    G = G + v_G;
 
-    % --- F. Restricciones ---
-    G(4) = max(G(4), 0.01); 
-    G(3) = max(G(3), 0.1);  
+    % --- F. Constraints ---
+    G(:, 4) = max(G(:, 4), 0.01); % Escala mínima
+    G(:, 3) = max(G(:, 3), 0.1);  % Z mínimo
 
-    % --- G. Visualización 2D en tiempo real ---
-    if mod(it, 10) == 0
-        subplot(1,3,1);
-        imshow(img); 
-        title(['Render Actual (Cam ', num2str(idx), ')']);
-        
-        subplot(1,3,2);
-        imshow(target_img); 
-        title('Ground Truth (Objetivo)');
-        
-        subplot(1,3,3);
-        plot(loss_history(1:it), 'Color', [0.8 0 0], 'LineWidth', 1.2);
-        title(sprintf('Iter %d | Loss: %.6f', it, loss));
-        xlabel('Iteración'); grid on;
-        
+    % --- G. Visualización ---
+    if mod(it, 20) == 0
+        subplot(1,3,1); imshow(img); title('Render (2 Gaussianas)');
+        subplot(1,3,2); imshow(target_img); title('Ground Truth');
+        subplot(1,3,3); plot(loss_history(1:it), 'r'); title('Convergencia');
         drawnow limitrate;
     end
 end
 
-fprintf('✓ Optimización finalizada. Generando visualización 3D...\n');
-
-% --- H. PLOT 3D DE TRAYECTORIA ---
-figure('Color', 'w', 'Name', 'Trayectoria de la Gaussiana en el Espacio');
-hold on; grid on; axis equal;
-
-% 1. Dibujar las cámaras para referencia
-for i = 1:num_cams
-    % La posición de la cámara en el mundo es C = -R' * t
-    C = -cams(i).R' * cams(i).t;
-    plot3(C(1), C(2), C(3), 'k^', 'MarkerSize', 8, 'LineWidth', 1.5);
-    text(C(1), C(2), C(3), [' Cam', num2str(i)], 'FontSize', 8);
-end
-
-% 2. Dibujar la línea de trayectoria
-plot3(trajectory(:,1), trajectory(:,2), trajectory(:,3), 'b-', 'LineWidth', 2);
-
-% 3. Resaltar Inicio y Fin
-plot3(trajectory(1,1), trajectory(1,2), trajectory(1,3), 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
-text(trajectory(1,1), trajectory(1,2), trajectory(1,3), ' INICIO', 'Color', 'g', 'FontWeight', 'bold');
-
-plot3(trajectory(end,1), trajectory(end,2), trajectory(end,3), 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
-text(trajectory(end,1), trajectory(end,2), trajectory(end,3), ' FINAL', 'Color', 'r', 'FontWeight', 'bold');
-
-% 4. Configuración de vista
-view(3);
-xlabel('X Mundo'); ylabel('Y Mundo'); zlabel('Z Mundo');
-title('Movimiento de la Gaussiana durante la Optimización');
-legend('Cámaras', 'Recorrido', 'Punto Inicial', 'Punto Final', 'Location', 'northeastoutside');
-
-rotate3d on;
+% --- H. PLOT 3D ---
+figure('Color', 'w'); hold on; grid on; axis equal;
+plot3(traj1(:,1), traj1(:,2), traj1(:,3), 'r-', 'LineWidth', 2); % Trayectoria G1
+plot3(traj2(:,1), traj2(:,2), traj2(:,3), 'b-', 'LineWidth', 2); % Trayectoria G2
+legend('Gaussiana 1 (Roja)', 'Gaussiana 2 (Azul)');
+title('Recorrido de las 2 Gaussianas');
+view(3); rotate3d on;
