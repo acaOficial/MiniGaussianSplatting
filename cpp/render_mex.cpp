@@ -39,8 +39,16 @@ inline void projectPoint(const Gaussian& g, const Camera& cam,
         return;
     }
 
-    u = cam.K[0]*(Xc/Zc) + cam.K[2];
-    v = cam.K[4]*(Yc/Zc) + cam.K[5];
+    float fx = cam.K[0];   // K(1,1)
+    float fy = cam.K[4];   // K(2,2)
+    float cx = cam.K[6];   // K(1,3)
+    float cy = cam.K[7];   // K(2,3)
+
+    // Convertimos a coordenadas 0-based para rasterización
+    u = fx * (Xc / Zc) + cx - 1.0f;
+    v = fy * (Yc / Zc) + cy - 1.0f;
+
+
 }
 
 // ------------------------------------
@@ -126,7 +134,8 @@ void mexFunction(int nlhs, mxArray* plhs[],
         if (Zc <= 0) continue;
 
         // sigma correcto (tamaño aparente en pantalla)
-        float sigma = g.scale * (cam.K[0] / Zc);
+        float fx = cam.K[0];
+        float sigma = g.scale * (fx / Zc);
 
         // 3 sigmas → 99.7%
         int radius = std::max(1, (int)std::ceil(3.0f * sigma));
