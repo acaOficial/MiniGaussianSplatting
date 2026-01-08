@@ -2,6 +2,9 @@
 clear; clc; close all;
 % setup_paths; % Asegúrate de que esta función esté disponible o comentada si no es necesaria
 
+% Agregar carpeta cpp al path de MATLAB
+addpath('../cpp');
+
 % 1. Configuración de Escena y Cámaras
 W = 640; H = 480;
 % Simulamos carga de datos (ajusta a tu ruta real)
@@ -26,9 +29,9 @@ traj1 = zeros(iterations, 3);
 traj2 = zeros(iterations, 3);
 
 % 3. Hiperparámetros
-lr_pos_init = 0.05;      
-lr_scale_init = 0.005;   
-momentum = 0.9;
+lr_pos_init = 0.01;       % Reducido de 0.05
+lr_scale_init = 0.001;    % Reducido de 0.005
+momentum = 0.7;           % Reducido de 0.9 para menos inercia
 v_G = zeros(size(G)); 
 eps = 1e-3;             
 
@@ -74,6 +77,10 @@ for it = 1:iterations
             grad_G(g_idx, p_idx) = (loss_p - loss) / eps;
         end
     end
+    
+    % Gradient clipping para evitar saltos grandes
+    max_grad = 1.0;  % Reducido de 5.0 para mayor estabilidad
+    grad_G = max(min(grad_G, max_grad), -max_grad);
 
     % --- E. Actualización con Momentum ---
     lrs = [lr_pos, lr_pos, lr_pos, lr_scale, 0, 0, 0, 0]; 
@@ -81,8 +88,10 @@ for it = 1:iterations
     G = G + v_G;
 
     % --- F. Constraints ---
-    G(:, 4) = max(G(:, 4), 0.01); % Escala mínima
-    G(:, 3) = max(G(:, 3), 0.1);  % Z mínimo
+    G(:, 4) = max(min(G(:, 4), 0.15), 0.02); % Escala entre 0.02 y 0.15
+    G(:, 1) = max(min(G(:, 1), 0.4), -0.4);  % X entre -0.4 y 0.4
+    G(:, 2) = max(min(G(:, 2), 0.3), -0.3);  % Y entre -0.3 y 0.3
+    G(:, 3) = max(min(G(:, 3), 1.3), 0.9);   % Z entre 0.9 y 1.3 (cerca de inicio)
 
     % --- NUEVO: Print de estado ---
     if mod(it, print_every) == 0 || it == 1
