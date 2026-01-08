@@ -9,7 +9,7 @@ num_cams = 8; % Aumentamos a 8 para que sea más robusto con 2 objetos
 % Pos: [x y z] | Scale | RGB | Opacity
 G_gt = [
      0.15,  0.0, 1.0,  0.07,   1, 0, 0,   1.0;  % Gaussiana 1: Roja a la derecha
-    -0.15,  0.0, 1.0,  0.07,   0, 0, 1,   1.0   % Gaussiana 2: Azul a la izquierda
+    -0.15,  0.0, 1.0,  0.07,   0, 0, 1,   0.7   % Gaussiana 2: Azul a la izquierda
 ];
 
 % El objetivo de las cámaras es el centro entre ambas (el origen aprox)
