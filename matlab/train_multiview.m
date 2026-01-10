@@ -1,5 +1,5 @@
-%% OPTIMIZACIÓN MULTIVISTA: 1 O 2 GAUSSIANAS
-% Script unificado para entrenar con 1 o 2 gaussianas
+%% OPTIMIZACIÓN MULTIVISTA: 1, 2, 3 O 10 GAUSSIANAS
+% Script unificado para entrenar con múltiples gaussianas
 % Simplemente comenta/descomenta la sección que desees usar
 
 clear; clc; close all;
@@ -8,15 +8,36 @@ clear; clc; close all;
 addpath('../cpp');
 
 % ===========================================================================
-% CONFIGURACIÓN:ELIGE NÚMERO DE GAUSSIANAS
+% CONFIGURACIÓN: ELIGE NÚMERO DE GAUSSIANAS
 % ===========================================================================
 
 % ---- OPCIÓN 1: UNA GAUSSIANA ----
-G = [0.1, 0.1, 1.1,  0.1,  1, 0, 0,  1.0];   % Gaussiana única (Roja)
+%G = [0.1, 0.1, 1.1,  0.1,  1, 0, 0,  1.0];   % Gaussiana única (Roja)
 
 % ---- OPCIÓN 2: DOS GAUSSIANAS ----
 % G = [ 0.2,  0.1, 1.1,  0.1,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
 %      -0.2, -0.1, 1.1,  0.1,  0, 0, 1,  1.0];  % Gaussiana 2 (Azul)
+
+% ---- OPCIÓN 3: TRES GAUSSIANAS ----
+%G = [ 0.25,  0.1, 1.1,  0.08,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
+%      0.0,   0.0, 1.1,  0.08,  0, 1, 0,  1.0;   % Gaussiana 2 (Verde)
+%     -0.25, -0.1, 1.1,  0.08,  0, 0, 1,  1.0];  % Gaussiana 3 (Azul)
+
+% ---- OPCIÓN 4: DIEZ GAUSSIANAS (2 filas de 5) ----
+ G = [
+     % Fila superior
+     -0.32,  0.15, 1.1,  0.06,   1.0, 0.0, 0.0,   1.0;  % Roja
+     -0.16,  0.15, 1.1,  0.06,   1.0, 0.5, 0.0,   1.0;  % Naranja
+      0.0,   0.15, 1.1,  0.06,   1.0, 1.0, 0.0,   1.0;  % Amarilla
+      0.16,  0.15, 1.1,  0.06,   0.0, 1.0, 0.0,   1.0;  % Verde
+      0.32,  0.15, 1.1,  0.06,   0.0, 1.0, 1.0,   1.0;  % Cian
+     % Fila inferior
+     -0.32, -0.15, 1.1,  0.06,   0.0, 0.0, 1.0,   1.0;  % Azul
+     -0.16, -0.15, 1.1,  0.06,   0.5, 0.0, 1.0,   1.0;  % Púrpura
+      0.0,  -0.15, 1.1,  0.06,   1.0, 0.0, 1.0,   1.0;  % Magenta
+      0.16, -0.15, 1.1,  0.06,   1.0, 0.5, 0.5,   1.0;  % Rosa
+      0.32, -0.15, 1.1,  0.06,   0.5, 0.5, 1.0,   1.0   % Lavanda
+ ];
 
 % ===========================================================================
 % 1. CONFIGURACIÓN DE ESCENA Y CÁMARAS
