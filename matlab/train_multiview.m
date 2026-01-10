@@ -12,12 +12,12 @@ addpath('../cpp');
 % ===========================================================================
 
 % ---- OPCIÓN 1: UNA GAUSSIANA ----
-%G = [0.1, 0.1, 1.1,  0.1,  1, 0, 0,  1.0];   % Gaussiana única (Roja)
+G = [0.1, 0.1, 1.1,  0.1,  1, 0, 0,  1.0];   % Gaussiana única (Roja)
 
 % ---- OPCIÓN 2: DOS GAUSSIANAS ----
- G = [ 0.2,  0.1, 1.1,  0.1,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
-      -0.2, -0.1, 1.1,  0.1,  0, 0, 1,  0.7];  % Gaussiana 2 (Azul)
-
+% G = [ 0.2,  0.1, 1.1,  0.1,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
+%      -0.2, -0.1, 1.1,  0.1,  0, 0, 1,  0.7];  % Gaussiana 2 (Azul)
+%
 % ---- OPCIÓN 3: TRES GAUSSIANAS ----
 %G = [ 0.25,  0.1, 1.1,  0.08,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
 %      0.0,   0.0, 1.1,  0.08,  0, 1, 0,  1.0;   % Gaussiana 2 (Verde)
@@ -182,15 +182,11 @@ for it = 1:iterations
     cam_stack = cam_stack(2:end);
     target_img = targets{idx};
     
-    % --- RENDER Y LOSS ---
+    % --- RENDER Y MÉTRICAS ---
     img = render_mex(G, cams(idx).K, cams(idx).R, cams(idx).t, W, H);
-    loss = compute_loss(img, target_img);
+    [loss, psnr_val, mse_val] = compute_metrics(img, target_img);
     loss_history(it) = loss;
-    
-    % --- CÁLCULO DE PSNR Y MSE ---
-    psnr_val = compute_psnr(img, target_img);
     psnr_history(it) = psnr_val;
-    mse_val = compute_mse(img, target_img);
     mse_history(it) = mse_val;
     
     % --- GUARDAR RENDERS CADA N ITERACIONES ---
@@ -212,7 +208,7 @@ for it = 1:iterations
             Gp = G;
             Gp(g_idx, p_idx) = Gp(g_idx, p_idx) + eps;
             img_p = render_mex(Gp, cams(idx).K, cams(idx).R, cams(idx).t, W, H);
-            loss_p = compute_loss(img_p, target_img);
+            loss_p = compute_metrics(img_p, target_img);
             grad_G(g_idx, p_idx) = (loss_p - loss) / eps;
         end
     end
