@@ -1,4 +1,4 @@
-%% OPTIMIZACIÓN MULTIVISTA: 1, 2, 3 O 10 GAUSSIANAS
+ %% OPTIMIZACIÓN MULTIVISTA: 1, 2, 3 O 10 GAUSSIANAS
 % Script unificado para entrenar con múltiples gaussianas
 % Simplemente comenta/descomenta la sección que desees usar
 
