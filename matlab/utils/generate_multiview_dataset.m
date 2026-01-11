@@ -1,53 +1,50 @@
 %% GENERADOR UNIFICADO DE DATASETS MULTIVIEW
-% Script parametrizable para generar datasets con N gaussianas
-% Simplemente descomenta la configuración que desees usar
-
 clear; clc;
 setup_paths;
 
 W = 640; H = 480;
 
-% ===========================================================================
-% CONFIGURACIÓN: ELIGE NÚMERO DE GAUSSIANAS
-% ===========================================================================
+% ==============
+% CONFIGURACIÓN: 
+% ==============
 
 % ---- OPCIÓN 1: UNA GAUSSIANA ----
-num_cams = 5;
-G_gt = [
-    0.0  0.0  1.0   0.08   1 0 0   1.0
-];
+%num_cams = 5;
+%G_gt = [
+%    0.0  0.0  1.0   0.08   1 0 0   1.0
+%];
 
 % ---- OPCIÓN 2: DOS GAUSSIANAS ----
-% num_cams = 8;
-% G_gt = [
-%      0.15,  0.0, 1.0,  0.07,   1, 0, 0,   1.0;  % Gaussiana 1: Roja a la derecha
-%     -0.15,  0.0, 1.0,  0.07,   0, 0, 1,   0.7   % Gaussiana 2: Azul a la izquierda
-% ];
+ num_cams = 8;
+ G_gt = [
+      0.15,  0.0, 1.0,  0.07,   1, 0, 0,   1.0;  % Gaussiana 1: Roja a la derecha
+     -0.15,  0.0, 1.0,  0.07,   0, 0, 1,   0.7   % Gaussiana 2: Azul a la izquierda
+ ];
 
 % ---- OPCIÓN 3: TRES GAUSSIANAS ----
-% num_cams = 8;
-% G_gt = [
-%      0.20,  0.0, 1.0,  0.06,   1, 0, 0,   1.0;  % Gaussiana 1: Roja (derecha)
-%      0.0,   0.0, 1.0,  0.06,   0, 1, 0,   1.0;  % Gaussiana 2: Verde (centro)
-%     -0.20,  0.0, 1.0,  0.06,   0, 0, 1,   1.0   % Gaussiana 3: Azul (izquierda)
-% ];
-
-% ---- OPCIÓN 4: DIEZ GAUSSIANAS (2 filas de 5) ----
- %num_cams = 12;
+ %num_cams = 8;
  %G_gt = [
- %    % Fila superior (Y = 0.12)
- %    -0.30,  0.12, 1.0,  0.05,   1.0, 0.0, 0.0,   1.0;  % G1: Roja
-  %   -0.15,  0.12, 1.0,  0.05,   1.0, 0.5, 0.0,   1.0;  % G2: Naranja
- %     0.0,   0.12, 1.0,  0.05,   1.0, 1.0, 0.0,   1.0;  % G3: Amarilla
-  %    0.15,  0.12, 1.0,  0.05,   0.0, 1.0, 0.0,   1.0;  % G4: Verde
-  %    0.30,  0.12, 1.0,  0.05,   0.0, 1.0, 1.0,   1.0;  % G5: Cian
+ %     0.20,  0.0, 1.0,  0.06,   1, 0, 0,   1.0;  % Gaussiana 1: Roja (derecha)
+ %     0.0,   0.0, 1.0,  0.06,   0, 1, 0,   1.0;  % Gaussiana 2: Verde (centro)
+ %    -0.20,  0.0, 1.0,  0.06,   0, 0, 1,   1.0   % Gaussiana 3: Azul (izquierda)
+ %];
+
+% ---- OPCIÓN 4: DIEZ GAUSSIANAS ----
+% num_cams = 12;
+ %G_gt = [
+     % Fila superior (Y = 0.12)
+  %   -0.30,  0.12, 1.0,  0.05,   1.0, 0.0, 0.0,   1.0;  % G1: Roja
+   %  -0.15,  0.12, 1.0,  0.05,   1.0, 0.5, 0.0,   1.0;  % G2: Naranja
+   %   0.0,   0.12, 1.0,  0.05,   1.0, 1.0, 0.0,   1.0;  % G3: Amarilla
+    %  0.15,  0.12, 1.0,  0.05,   0.0, 1.0, 0.0,   1.0;  % G4: Verde
+    %  0.30,  0.12, 1.0,  0.05,   0.0, 1.0, 1.0,   1.0;  % G5: Cian
      
-     % Fila inferior (Y = -0.12)
-  %   -0.30, -0.12, 1.0,  0.05,   0.0, 0.0, 1.0,   1.0;  % G6: Azul
-  %   -0.15, -0.12, 1.0,  0.05,   0.5, 0.0, 1.0,   1.0;  % G7: Púrpura
- %    0.0,  -0.12, 1.0,  0.05,   1.0, 0.0, 1.0,   1.0;  % G8: Magenta
- %     0.15, -0.12, 1.0,  0.05,   1.0, 0.5, 0.5,   1.0;  % G9: Rosa
-  %    0.30, -0.12, 1.0,  0.05,   0.5, 0.5, 1.0,   1.0   % G10: Lavanda
+    % % Fila inferior (Y = -0.12)
+   %  -0.30, -0.12, 1.0,  0.05,   0.0, 0.0, 1.0,   1.0;  % G6: Azul
+    % -0.15, -0.12, 1.0,  0.05,   0.5, 0.0, 1.0,   1.0;  % G7: Púrpura
+   %  0.0,  -0.12, 1.0,  0.05,   1.0, 0.0, 1.0,   1.0;  % G8: Magenta
+    %  0.15, -0.12, 1.0,  0.05,   1.0, 0.5, 0.5,   1.0;  % G9: Rosa
+   %   0.30, -0.12, 1.0,  0.05,   0.5, 0.5, 1.0,   1.0   % G10: Lavanda
  %];
 
 % ===========================================================================

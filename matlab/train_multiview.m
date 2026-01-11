@@ -1,42 +1,41 @@
  %% OPTIMIZACIÓN MULTIVISTA: 1, 2, 3 O 10 GAUSSIANAS
 % Script unificado para entrenar con múltiples gaussianas
-% Simplemente comenta/descomenta la sección que desees usar
 
 clear; clc; close all;
 
 % Agregar carpeta cpp al path de MATLAB
 addpath('../cpp');
 
-% ===========================================================================
-% CONFIGURACIÓN: ELIGE NÚMERO DE GAUSSIANAS
-% ===========================================================================
+% ===============
+% CONFIGURACIÓN:
+% ===============
 
 % ---- OPCIÓN 1: UNA GAUSSIANA ----
-G = [0.1, 0.1, 1.1,  0.1,  1, 0, 0,  1.0];   % Gaussiana única (Roja)
+%G = [0.1, 0.1, 1.1,  0.1,  1, 0, 0,  1.0];   % Gaussiana única (Roja)
 
 % ---- OPCIÓN 2: DOS GAUSSIANAS ----
-% G = [ 0.2,  0.1, 1.1,  0.1,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
-%      -0.2, -0.1, 1.1,  0.1,  0, 0, 1,  0.7];  % Gaussiana 2 (Azul)
+ G = [ 0.2,  0.1, 1.1,  0.1,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
+      -0.2, -0.1, 1.1,  0.1,  0, 0, 1,  0.7];  % Gaussiana 2 (Azul)
 %
 % ---- OPCIÓN 3: TRES GAUSSIANAS ----
 %G = [ 0.25,  0.1, 1.1,  0.08,  1, 0, 0,  1.0;   % Gaussiana 1 (Roja)
 %      0.0,   0.0, 1.1,  0.08,  0, 1, 0,  1.0;   % Gaussiana 2 (Verde)
 %     -0.25, -0.1, 1.1,  0.08,  0, 0, 1,  1.0];  % Gaussiana 3 (Azul)
 
-% ---- OPCIÓN 4: DIEZ GAUSSIANAS (2 filas de 5) ----
+% ---- OPCIÓN 4: DIEZ GAUSSIANAS ----
 %G = [
-     % Fila superior
+ %    % Fila superior
  %    -0.32,  0.15, 1.1,  0.06,   1.0, 0.0, 0.0,   1.0;  % Roja
  %    -0.16,  0.15, 1.1,  0.06,   1.0, 0.5, 0.0,   1.0;  % Naranja
- %     0.0,   0.15, 1.1,  0.06,   1.0, 1.0, 0.0,   1.0;  % Amarilla
- %     0.16,  0.15, 1.1,  0.06,   0.0, 1.0, 0.0,   1.0;  % Verde
- %     0.32,  0.15, 1.1,  0.06,   0.0, 1.0, 1.0,   1.0;  % Cian
- %    % Fila inferior
- %    -0.32, -0.15, 1.1,  0.06,   0.0, 0.0, 1.0,   1.0;  % Azul
-%     -0.16, -0.15, 1.1,  0.06,   0.5, 0.0, 1.0,   1.0;  % Púrpura
-%      0.0,  -0.15, 1.1,  0.06,   1.0, 0.0, 1.0,   1.0;  % Magenta
-%      0.16, -0.15, 1.1,  0.06,   1.0, 0.5, 0.5,   1.0;  % Rosa
- %     0.32, -0.15, 1.1,  0.06,   0.5, 0.5, 1.0,   1.0   % Lavanda
+  %    0.0,   0.15, 1.1,  0.06,   1.0, 1.0, 0.0,   1.0;  % Amarilla
+  %    0.16,  0.15, 1.1,  0.06,   0.0, 1.0, 0.0,   1.0;  % Verde
+   %   0.32,  0.15, 1.1,  0.06,   0.0, 1.0, 1.0,   1.0;  % Cian
+   %  % Fila inferior
+   %  -0.32, -0.15, 1.1,  0.06,   0.0, 0.0, 1.0,   1.0;  % Azul
+   %  -0.16, -0.15, 1.1,  0.06,   0.5, 0.0, 1.0,   1.0;  % Púrpura
+   %   0.0,  -0.15, 1.1,  0.06,   1.0, 0.0, 1.0,   1.0;  % Magenta
+   %   0.16, -0.15, 1.1,  0.06,   1.0, 0.5, 0.5,   1.0;  % Rosa
+   %   0.32, -0.15, 1.1,  0.06,   0.5, 0.5, 1.0,   1.0   % Lavanda
  %];
 
 % ===========================================================================
@@ -70,7 +69,7 @@ end
 % ===========================================================================
 iterations = 1000;
 print_every = 50;
-save_renders_every = 5;  % Guardar renders cada N iteraciones
+save_renders_every = 5;
 
 lr_pos_init = 0.01;      
 lr_scale_init = 0.001;   
@@ -94,7 +93,7 @@ for i = 1:num_cams
     end
 end
 
-fprintf('✓ Carpetas de renders creadas en: %s\n', renders_dir);
+fprintf('Carpetas de renders creadas en: %s\n', renders_dir);
 
 % ===========================================================================
 % 3.2. VISUALIZACIÓN INICIAL DE LA ESCENA
@@ -137,7 +136,6 @@ end
 
 legend('Gaussianas', 'Cámaras', 'Location', 'best');
 drawnow;
-fprintf('✓ Visualización inicial mostrada\n');
 
 % ===========================================================================
 % 4. CONFIGURACIÓN DE VISUALIZACIÓN
@@ -158,7 +156,7 @@ fprintf('-----------------------------------------------------------------------
 % 5. LOOP DE OPTIMIZACIÓN
 % ===========================================================================
 for it = 1:iterations
-    tic; % Iniciar medición de tiempo
+    tic;
     
     % Guardar trayectorias
     if num_g == 1
@@ -199,7 +197,7 @@ for it = 1:iterations
         end
     end
     
-    % --- CÁLCULO DE GRADIENTES ---
+    % --- CÁLCULO DE GRADIeENTES ---
     grad_G = zeros(size(G));
     
     for g_idx = 1:num_g
@@ -229,7 +227,7 @@ for it = 1:iterations
     G(:, 3) = max(min(G(:, 3), 1.3), 0.9);   % Z entre 0.9 y 1.3
     
     % --- MEDICIÓN DE TIEMPO ---
-    time_history(it) = toc * 1000; % Convertir a milisegundos
+    time_history(it) = toc * 1000;
     
     % --- PRINT DE ESTADO ---
     if mod(it, print_every) == 0 || it == 1
