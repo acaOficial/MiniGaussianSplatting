@@ -30,17 +30,31 @@ struct Camera {
 inline void projectPoint(const Gaussian& g, const Camera& cam,
                          float& u, float& v, float& Zc)
 {
-    float Xc = cam.R[0]*g.x + cam.R[1]*g.y + cam.R[2]*g.z + cam.t[0];
-    float Yc = cam.R[3]*g.x + cam.R[4]*g.y + cam.R[5]*g.z + cam.t[1];
-         Zc = cam.R[6]*g.x + cam.R[7]*g.y + cam.R[8]*g.z + cam.t[2];
+    // Acceso correcto a R (Column-Major de MATLAB)
+    // R[0]=R(1,1), R[1]=R(2,1), R[2]=R(3,1)
+    // R[3]=R(1,2), R[4]=R(2,2), R[5]=R(3,2)
+    // R[6]=R(1,3), R[7]=R(2,3), R[8]=R(3,3)
+    
+    float Xc = cam.R[0]*g.x + cam.R[3]*g.y + cam.R[6]*g.z + cam.t[0];
+    float Yc = cam.R[1]*g.x + cam.R[4]*g.y + cam.R[7]*g.z + cam.t[1];
+    float Zc_val = cam.R[2]*g.x + cam.R[5]*g.y + cam.R[8]*g.z + cam.t[2];
+
+    Zc = Zc_val;
 
     if (Zc <= 0) {
         u = v = -1e9;
         return;
     }
 
-    u = cam.K[0]*(Xc/Zc) + cam.K[2];
-    v = cam.K[4]*(Yc/Zc) + cam.K[5];
+    // Acceso correcto a K (Column-Major)
+    // K = [fx 0 cx; 0 fy cy; 0 0 1] -> [fx, 0, 0, 0, fy, 0, cx, cy, 1]
+    float fx = cam.K[0];   
+    float fy = cam.K[4];   
+    float cx = cam.K[6];   
+    float cy = cam.K[7];   
+
+    u = fx * (Xc / Zc) + cx;
+    v = fy * (Yc / Zc) + cy;
 }
 
 // ------------------------------------
@@ -119,6 +133,12 @@ void mexFunction(int nlhs, mxArray* plhs[],
     // -------------------------
     // Rasterización
     // -------------------------
+
+    std::sort(G.begin(), G.end(),
+          [](const Gaussian& a, const Gaussian& b) {
+              return a.z > b.z; // back-to-front
+          });
+          
     for (const auto& g : G)
     {
         float u, v, Zc;
@@ -126,7 +146,8 @@ void mexFunction(int nlhs, mxArray* plhs[],
         if (Zc <= 0) continue;
 
         // sigma correcto (tamaño aparente en pantalla)
-        float sigma = g.scale * (cam.K[0] / Zc);
+        float fx = cam.K[0];
+        float sigma = g.scale * (fx / Zc);
 
         // 3 sigmas → 99.7%
         int radius = std::max(1, (int)std::ceil(3.0f * sigma));
