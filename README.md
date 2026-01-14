@@ -1,6 +1,6 @@
 # MiniGaussianSplatting
 
-Implementación educativa de un pipeline simplificado de **3D Gaussian Splatting**,  
+Implementación de un pipeline simplificado de **3D Gaussian Splatting**,  
 desarrollado como Trabajo del Máster en Sistemas Inteligentes y Aplicaciones  
 Numéricas en Ingeniería (SIANI) – ULPGC, curso 2025/2026.
 
