@@ -145,7 +145,7 @@ void mexFunction(int nlhs, mxArray* plhs[],
         projectPoint(g, cam, u, v, Zc);
         if (Zc <= 0) continue;
 
-        // sigma correcto (tamaño aparente en pantalla)
+        // sigma correcto
         float fx = cam.K[0];
         float sigma = g.scale * (fx / Zc);
 
@@ -163,7 +163,6 @@ void mexFunction(int nlhs, mxArray* plhs[],
                 float dx = x - u;
                 float dy = y - v;
 
-                // MANTENER EL sigma BUENO
                 float w = std::exp(-(dx*dx + dy*dy) / (2*sigma*sigma));
 
                 float a = w * g.opacity;

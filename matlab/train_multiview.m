@@ -1,9 +1,6 @@
- %% OPTIMIZACIÓN MULTIVISTA: 1, 2, 3 O 10 GAUSSIANAS
-% Script unificado para entrenar con múltiples gaussianas
+%% OPTIMIZACIÓN MULTIVISTA: 1, 2, 3 O 10 GAUSSIANAS
 
 clear; clc; close all;
-
-% Agregar carpeta cpp al path de MATLAB
 addpath('../cpp');
 
 % ===============
@@ -39,7 +36,7 @@ addpath('../cpp');
  %];
 
 % ===========================================================================
-% 1. CONFIGURACIÓN DE ESCENA Y CÁMARAS
+% 1. CONFIGURACIÓN DE ESCENA Y CÁMARdAS
 % ===========================================================================
 W = 640; H = 480;
 load('../data/cameras.mat', 'cams'); 
@@ -150,9 +147,9 @@ for it = 1:iterations
     psnr_history(it) = psnr_val;
     mse_history(it) = mse_val;
     
-    % --- GUARDAR RENDERS CADA N ITERACIONES ---
+    % --- GUARDaAR RENDERS CADA N ITERACIONES ---
     if mod(it, save_renders_every) == 0
-        % Renderizar y guardar TODAS las cámaras
+        % Renderizar y guardar las cámaras
         for cam_idx = 1:num_cams
             render_img = render_mex(G, cams(cam_idx).K, cams(cam_idx).R, cams(cam_idx).t, W, H);
             save_path = fullfile(renders_dir, sprintf('cam%02d', cam_idx), sprintf('iter_%04d.png', it));

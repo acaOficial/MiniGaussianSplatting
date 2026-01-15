@@ -1,8 +1,8 @@
 function plot_initial_scene(G, cams)
-% PLOT_INITIAL_SCENE Visualiza la configuración inicial de gaussianas y cámaras
+% PLOT_dINITIAL_SCENE Visualiza la configuración inicial de gaussianas y cámaras
 %
 % Inputs:
-%   G    - Matriz de gaussianas [N x 8] donde cada fila: [x,y,z,scale,r,g,b,alpha]
+%   G    - Matriz de gaussianas [N x 8] donde cada fila: [x,y,z,scaler,r,g,b,alpha]
 %   cams - Array de estructuras de cámaras con campos K, R, t
 
     num_g = size(G, 1);

@@ -5,8 +5,7 @@ function print_iteration_info(it, G, loss, psnr_val, time_ms)
 %   it        - Número de iteración
 %   G         - Matriz de gaussianas [N x 8]
 %   loss      - Valor de loss actual
-%   psnr_val  - Valor de PSNR actual
-%   time_ms   - Tiempo de la iteración en milisegundos
+%   time_ms   - Tiempo de la iteración lisegundos
 
     num_g = size(G, 1);
     
