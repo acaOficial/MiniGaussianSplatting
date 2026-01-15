@@ -8,7 +8,7 @@ function cams = create_camera_ring(num_cams, radius, W, H, target)
         target = [0; 0; 1];
     end
 
-    f  = 500;
+    f = 500;
     cx = W / 2;
     cy = H / 2;
 

@@ -1,10 +1,10 @@
 function [loss, psnr, mse] = compute_metrics(img, target)
-% COMPUTE_METRICS
+
 % Calcula todas las métricas de evaluación: Loss, PSNR y MSE
 %
 % Inputs:
 %   img    - Imagen renderizada
-%   target - Imagen objetivo (ground truth)
+%   target - Imagen objetivo
 %
 % Outputs:
 %   loss   - Loss combinado (L1 + D-SSIM) como en 3DGS
@@ -23,7 +23,7 @@ function [loss, psnr, mse] = compute_metrics(img, target)
     % D-SSIM (1 - SSIM)
     try
         ssim_val = ssim(img, target);
-        d_ssim = (1 - ssim_val) / 2;  % normalizado a [0,1]
+        d_ssim = (1 - ssim_val) / 2;
     catch
         warning('SSIM no disponible, usando MSE');
         d_ssim = mean((img(:) - target(:)).^2);
@@ -37,10 +37,8 @@ function [loss, psnr, mse] = compute_metrics(img, target)
     
     % ========== PSNR ==========
     if mse < 1e-10
-        psnr = 100;  % Imágenes casi idénticas
+        psnr = 100;  % Las imágenes son casi las mismas
     else
-        % PSNR = 10 * log10(MAX^2 / MSE)
-        % Para imágenes normalizadas [0,1], MAX = 1
         psnr = 10 * log10(1 / mse);
     end
 end

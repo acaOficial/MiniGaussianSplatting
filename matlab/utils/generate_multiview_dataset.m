@@ -52,7 +52,7 @@ W = 640; H = 480;
 % ===========================================================================
 
 num_g = size(G_gt, 1);
-fprintf('Generando dataset con %d gaussiana(s)...\n', num_g);
+fprintf('Generandorf dataset con %d gaussiana(s)...\n', num_g);
 
 % Calcular posición objetivo (centro de las gaussianas)
 if num_g == 1
@@ -81,7 +81,7 @@ end
 % Guardar configuración de cámaras
 save('../data/cameras.mat', 'cams');
 
-fprintf('\n✓ Dataset generado exitosamente\n');
+fprintf('\n Dataset generado exitosamente\n');
 fprintf('  - Gaussianas: %d\n', num_g);
 fprintf('  - Cámaras: %d\n', num_cams);
 fprintf('  - Resolución: %dx%d\n', W, H);
